@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vital Orbit | NASA Space Apps Crop Rotation Decision Tool</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="brand">
+          <h1>
+            Vital Orbit
+            <span class="badge">NASA POWER + SMAP Decision Support</span>
+          </h1>
+          <div id="statusBanner">
+            Connecting to NASA POWER Earth Observation API...
+          </div>
+        </div>
+        <div class="location-picker">
+          <label for="farmSelect">Sample Farm:</label>
+          <select id="farmSelect">
+            <option value="kano">
+              Kano Savanna Plot #4, Nigeria (12.00°N, 8.59°E)
+            </option>
+            <option value="oyo">
+              Oyo Derived Savanna Farm, Nigeria (7.85°N, 3.93°E)
+            </option>
+            <option value="iowa">
+              Story County Corn Belt, USA (42.03°N, 93.62°W)
+            </option>
+          </select>
+        </div>
+      </header>
+
+      <div class="grid-top">
+        <!-- Left: Farmer Priorities & Field Summary -->
+        <div class="card">
+          <h2>1. Field Profile & Farmer Priorities</h2>
+          <div class="metric-row">
+            <div class="metric-box">
+              <div class="label">Annual Rainfall</div>
+              <div class="val" id="statRain">-- mm</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Peak Heat</div>
+              <div class="val" id="statTemp">-- °C</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Dry Stress Mos.</div>
+              <div class="val" id="statDry">--%</div>
+            </div>
+          </div>
+
+          <p class="helper-text">
+            Adjust priorities to dynamically re-rank crop rotations against
+            local NASA moisture &amp; heat trends:
+          </p>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>💧 Conserve Soil Water</span
+              ><strong id="valWater">9 / 10</strong>
+            </div>
+            <input type="range" id="sliderWater" min="1" max="10" value="9" />
+          </div>
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>🌱 Rebuild Soil Organic Matter</span
+              ><strong id="valSoil">8 / 10</strong>
+            </div>
+            <input type="range" id="sliderSoil" min="1" max="10" value="8" />
+          </div>
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>💰 Short-Term Cash Income</span
+              ><strong id="valProfit">6 / 10</strong>
+            </div>
+            <input type="range" id="sliderProfit" min="1" max="10" value="6" />
+          </div>
+        </div>
+
+        <!-- Right: NASA Seasonal Vulnerability Chart -->
+        <div class="card">
+          <h2>
+            2. NASA Seasonal Moisture &amp; Bare-Soil Vulnerability Window
+          </h2>
+          <div class="chart-wrapper">
+            <canvas id="climateChart"></canvas>
+          </div>
+          <p class="chart-caption">
+            *Highlights months where Root-Zone Soil Wetness (GWETROOT) falls
+            below 0.35—leaving bare fallow plots vulnerable to wind erosion and
+            heat crusting.
+          </p>
+        </div>
+      </div>
+
+      <!-- Bottom: 3 Rotation Comparisons -->
+      <h2 class="section-heading">
+        3. Recommended Crop Rotation Strategies (Ranked by NASA Fit)
+      </h2>
+      <div class="strategies-grid" id="strategiesContainer"></div>
+
+      <!-- Plain-Language Science Translator -->
+      <div class="glossary">
+        <strong>Plain-Language NASA Metric Guide:</strong>
+        <strong>Root-Zone Soil Wetness (GWETROOT):</strong> Satellite-modeled
+        moisture in the top 1 meter of soil where crop roots drink (0 = bone
+        dry, 1 = saturated). &nbsp;|&nbsp;
+        <strong>Bare-Field Vulnerability Window:</strong> Dry, hot months when
+        harvested fields lack cover crops, risking topsoil loss. &nbsp;|&nbsp;
+        <strong>Human-in-the-Loop Note:</strong> Satellite grids (~55 km) guide
+        strategy selection but must be verified with local soil pH tests and
+        extension officers.
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
