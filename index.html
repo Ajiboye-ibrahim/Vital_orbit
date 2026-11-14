@@ -3,8 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vital Orbit | NASA Space Apps Crop Rotation Decision Tool</title>
+    <title>Vital Orbit | Field Shift Crop Rotation Decision Tool</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
@@ -13,108 +18,178 @@
         <div class="brand">
           <h1>
             Vital Orbit
-            <span class="badge">NASA POWER + SMAP Decision Support</span>
+            <span class="badge">NASA POWER Decision Support</span>
           </h1>
           <div id="statusBanner">
             Connecting to NASA POWER Earth Observation API...
           </div>
         </div>
-        <div class="location-picker">
-          <label for="farmSelect">Sample Farm:</label>
-          <select id="farmSelect">
-            <option value="kano">
-              Kano Savanna Plot #4, Nigeria (12.00°N, 8.59°E)
-            </option>
-            <option value="oyo">
-              Oyo Derived Savanna Farm, Nigeria (7.85°N, 3.93°E)
-            </option>
-            <option value="iowa">
-              Story County Corn Belt, USA (42.03°N, 93.62°W)
-            </option>
-          </select>
+
+        <div class="header-controls">
+          <div
+            class="scenario-toggle"
+            title="Applies an explicit 0.75x rainfall assumption to test drought resilience"
+          >
+            <span>Climate Scenario:</span>
+            <button type="button" id="btnNormal" class="toggle-btn active">
+              Normal Baseline
+            </button>
+            <button type="button" id="btnDry" class="toggle-btn">
+              Dry Scenario (-25% Rain)
+            </button>
+          </div>
         </div>
       </header>
 
       <div class="grid-top">
-        <!-- Left: Farmer Priorities & Field Summary -->
+        <!-- Stage 1: Farmer Inputs & Map Pin -->
         <div class="card">
-          <h2>1. Field Profile & Farmer Priorities</h2>
-          <div class="metric-row">
-            <div class="metric-box">
-              <div class="label">Annual Rainfall</div>
-              <div class="val" id="statRain">-- mm</div>
+          <h2>1. Field Location, History &amp; Priorities</h2>
+
+          <div class="preset-bar">
+            <label for="presetSelect">Quick Regional Sites:</label>
+            <select id="presetSelect">
+              <option value="12.0022,8.5920">
+                Northern: Kano Savanna (12.00°N, 8.59°E)
+              </option>
+              <option value="7.7322,8.5391">
+                Middle Belt: Benue Valley (7.73°N, 8.54°E)
+              </option>
+              <option value="7.8500,3.9300">
+                Southwest: Oyo Derived Savanna (7.85°N, 3.93°E)
+              </option>
+            </select>
+          </div>
+
+          <div
+            id="map"
+            class="map-box"
+            title="Click anywhere on the map to pin a field"
+          ></div>
+          <div class="coords-readout" id="coordsReadout">
+            Pinned Field: 12.0022° N, 8.5920° E (Click map to move pin)
+          </div>
+
+          <div class="form-grid">
+            <div class="field-group">
+              <label for="soilType">Local Soil Type</label>
+              <select id="soilType">
+                <option value="sandy">
+                  Sandy (Drains fast, low retention)
+                </option>
+                <option value="loamy" selected>
+                  Loamy (Balanced retention)
+                </option>
+                <option value="clay">Clay (Holds moisture, heavy)</option>
+              </select>
             </div>
-            <div class="metric-box">
-              <div class="label">Peak Heat</div>
-              <div class="val" id="statTemp">-- °C</div>
+            <div class="field-group">
+              <label for="seasonMinus2">2 Seasons Ago</label>
+              <select id="seasonMinus2">
+                <option value="maize" selected>Maize (Cereal)</option>
+                <option value="sorghum">Sorghum (Cereal)</option>
+                <option value="millet">Millet (Cereal)</option>
+                <option value="cowpea">Cowpea (Legume)</option>
+                <option value="groundnut">Groundnut (Legume)</option>
+                <option value="soybean">Soybean (Legume)</option>
+                <option value="cassava">Cassava (Root)</option>
+                <option value="yam">Yam (Root)</option>
+              </select>
             </div>
-            <div class="metric-box">
-              <div class="label">Dry Stress Mos.</div>
-              <div class="val" id="statDry">--%</div>
+            <div class="field-group">
+              <label for="seasonMinus1">Last Season</label>
+              <select id="seasonMinus1">
+                <option value="maize" selected>Maize (Cereal)</option>
+                <option value="sorghum">Sorghum (Cereal)</option>
+                <option value="millet">Millet (Cereal)</option>
+                <option value="cowpea">Cowpea (Legume)</option>
+                <option value="groundnut">Groundnut (Legume)</option>
+                <option value="soybean">Soybean (Legume)</option>
+                <option value="cassava">Cassava (Root)</option>
+                <option value="yam">Yam (Root)</option>
+              </select>
             </div>
           </div>
 
-          <p class="helper-text">
-            Adjust priorities to dynamically re-rank crop rotations against
-            local NASA moisture &amp; heat trends:
-          </p>
-
           <div class="slider-group">
             <div class="slider-header">
-              <span>💧 Conserve Soil Water</span
-              ><strong id="valWater">9 / 10</strong>
+              <span>💧 Save Water</span><strong id="valWater">8 / 10</strong>
             </div>
-            <input type="range" id="sliderWater" min="1" max="10" value="9" />
+            <input type="range" id="sliderWater" min="1" max="10" value="8" />
           </div>
           <div class="slider-group">
             <div class="slider-header">
-              <span>🌱 Rebuild Soil Organic Matter</span
-              ><strong id="valSoil">8 / 10</strong>
+              <span>🌱 Rebuild Soil Health</span
+              ><strong id="valSoil">9 / 10</strong>
             </div>
-            <input type="range" id="sliderSoil" min="1" max="10" value="8" />
+            <input type="range" id="sliderSoil" min="1" max="10" value="9" />
           </div>
           <div class="slider-group">
             <div class="slider-header">
-              <span>💰 Short-Term Cash Income</span
+              <span>💰 Maximize Income</span
               ><strong id="valProfit">6 / 10</strong>
             </div>
             <input type="range" id="sliderProfit" min="1" max="10" value="6" />
           </div>
         </div>
 
-        <!-- Right: NASA Seasonal Vulnerability Chart -->
+        <!-- Stage 2 & 3: NASA Features & Seasonal Vulnerability Chart -->
         <div class="card">
-          <h2>
-            2. NASA Seasonal Moisture &amp; Bare-Soil Vulnerability Window
-          </h2>
+          <h2>2. NASA POWER Climate Features &amp; Moisture Window</h2>
+          <div class="metric-row">
+            <div class="metric-box">
+              <div class="label">Effective Rainfall</div>
+              <div class="val" id="statRain">-- mm</div>
+              <div class="sub-tag" id="tagRainClass">--</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Mean Temp (T2M)</div>
+              <div class="val" id="statTemp">-- °C</div>
+              <div class="sub-tag" id="tagScenario">Normal (1.0x)</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Root Soil Wetness</div>
+              <div class="val" id="statWet">--</div>
+              <div class="sub-tag" id="tagWetClass">--</div>
+            </div>
+          </div>
+
           <div class="chart-wrapper">
             <canvas id="climateChart"></canvas>
           </div>
           <p class="chart-caption">
-            *Highlights months where Root-Zone Soil Wetness (GWETROOT) falls
-            below 0.35—leaving bare fallow plots vulnerable to wind erosion and
-            heat crusting.
+            *Data fed by <strong>NASA POWER Agroclimatology</strong> (<code
+              >PRECTOTCORR</code
+            >
+            rainfall, <code>T2M</code> air temperature,
+            <code>GWETROOT</code> root-zone soil wetness). Dry scenario applies
+            a transparent <strong>0.75x rainfall assumption</strong>.
           </p>
         </div>
       </div>
 
-      <!-- Bottom: 3 Rotation Comparisons -->
-      <h2 class="section-heading">
-        3. Recommended Crop Rotation Strategies (Ranked by NASA Fit)
-      </h2>
+      <!-- Stage 4, 5 & 6: Ranked Rotation Plans + Sub-Score Breakdown -->
+      <div class="results-header">
+        <h2 class="section-heading">
+          3. Top 3 Recommended Multi-Season Rotation Plans
+        </h2>
+        <span class="scenario-pill" id="activeScenarioBadge"
+          >Showing: Normal Baseline</span
+        >
+      </div>
       <div class="strategies-grid" id="strategiesContainer"></div>
 
-      <!-- Plain-Language Science Translator -->
+      <!-- Plain-Language Glossary & Honest Limitation -->
       <div class="glossary">
-        <strong>Plain-Language NASA Metric Guide:</strong>
-        <strong>Root-Zone Soil Wetness (GWETROOT):</strong> Satellite-modeled
-        moisture in the top 1 meter of soil where crop roots drink (0 = bone
-        dry, 1 = saturated). &nbsp;|&nbsp;
-        <strong>Bare-Field Vulnerability Window:</strong> Dry, hot months when
-        harvested fields lack cover crops, risking topsoil loss. &nbsp;|&nbsp;
-        <strong>Human-in-the-Loop Note:</strong> Satellite grids (~55 km) guide
-        strategy selection but must be verified with local soil pH tests and
-        extension officers.
+        <strong>Plain-Language Guide &amp; Data Attribution:</strong>
+        <strong>NASA POWER:</strong> Free daily/monthly agroclimatology
+        observations (rainfall &amp; modeled root-zone soil wetness at ~0.5°
+        grid resolution). &nbsp;|&nbsp; <strong>Nitrogen Fixer:</strong> Legumes
+        (cowpea, groundnut, soybean) that replenish soil nitrogen after
+        heavy-feeding cereals (maize, sorghum). &nbsp;|&nbsp;
+        <strong>Limitation:</strong> Decision-support prototype to explore
+        options—not prescriptive agronomic advice; validate locally with farmers
+        and extension officers.
       </div>
     </div>
 
