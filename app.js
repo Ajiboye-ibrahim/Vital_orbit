@@ -546,9 +546,9 @@ function evaluateAndRender() {
           <span class="rank-tag">${idx === 0 ? "★ TOP RECOMMENDED PLAN" : `RANK #${idx + 1}`} • ${item.total_score} / 100</span>
           <h3>${item.name}</h3>
           <div class="sequence-flow">
-            <span class="crop-pill">Next: ${c1.label}</span>
+            <span class="crop-pill">Upcoming Season: ${c1.label}</span>
             <span class="arrow">→</span>
-            <span class="crop-pill">Season 2: ${c2.label}</span>
+            <span class="crop-pill">Following Season: ${c2.label}</span>
           </div>
 
           <div class="score-breakdown">
